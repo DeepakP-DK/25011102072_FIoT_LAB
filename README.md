@@ -97,12 +97,10 @@ Each task folder contains its experiment documentation, source code, project fil
 
 ---
 
-## 5. Submission Validation
+## 5. Key Learning Outcomes
 
-Run the evaluator from the repository root:
-
-```bash
-python evaluate.py
-```
-
-It checks the required folders and files, including task documentation, source/project files, build outputs, and circuit diagrams.
+- **Embedded Programming:** Developed and tested C programs for 8051 and STM32 microcontrollers.
+- **Peripheral Interfacing:** Worked with GPIO, timers, interrupts, displays, keypads, and motors.
+- **Communication Protocols:** Practised UART, I2C, and MQTT-based data exchange.
+- **Sensor Integration:** Acquired environmental data using the BME280 sensor.
+- **IoT Visualization:** Connected sensor data to an MQTT and Node-RED dashboard workflow.
