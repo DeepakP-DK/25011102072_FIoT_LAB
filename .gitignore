@@ -1,0 +1,50 @@
+# Target build objects & listings
+**/Listings/
+**/Objects/*.obj
+**/Objects/*.lst
+**/Objects/*.o
+**/Objects/*.d
+**/Objects/*.crf
+**/Objects/*.m51
+**/Objects/*.build_log.htm
+**/Objects/*.htm
+**/Objects/*.lnp
+**/Objects/*.sct
+
+# User IDE GUI cache & project options
+**/*.uvgui*
+**/*.uvopt*
+**/*.uvguix*
+**/*.uvoptx
+**/*.axf
+**/*.o
+**/*.d
+**/*.map
+**/Debug/
+**/Release/
+
+# OS metadata
+Thumbs.db
+.DS_Store
+
+# Evaluation / workspace temp
+resources_extracted/
+sample_repo/
+pdf_contents.json
+__pycache__/
+*.pyc
+
+# Ensure critical artifacts are tracked
+!**/Objects/*.hex
+!**/MDK-ARM/*.hex
+!**/MDK-ARM/**/*.hex
+!**/*.c
+!**/*.h
+!**/*.s
+!**/*.A51
+!**/*.ioc
+!**/*.uvproj
+!**/*.uvprojx
+!**/.mxproject
+!**/circuit.png
+!**/README.md
