@@ -1,50 +1,62 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 5
+**EXP:** CAT 5 - TASK 5B.1
 
-**DATE:** 17/08/2026
+**DATE:** 
 
-**NAME OF EXP:** Display Interfacing – 7-Segment Displays
+**NAME OF EXP:** Display Interfacing – Static 7-Segment Display
 
-**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51) + Keil C51
+**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51 @ 11.0592 MHz) + Keil C51
 
 ---
 
-## TASK5B.1 : Static Single-Digit 0-9 Decimal Counter on Common Anode 7-Segment
+## TASK 5B.1 : Display Interfacing – Static 7-Segment Display
 
-### 1. Circuit Diagram
+### 1. Aim
+To interface a Common Anode 7-segment display to Port 2 of the 8051 and implement an automated single-digit decimal counter from 0 to 9 with 1-second intervals.
 
-A Common Anode 7-Segment Display is interfaced to Port 2. Segments a-g light up when driven LOW (0). A lookup table stores 7-segment hex patterns for numerals 0 through 9. The program cycles through digits 0 to 9 with a 1-second interval.
+### 2. Components Required
+- 1x AT89C51 Microcontroller IC
+- 1x 0.56-inch Common Anode 7-Segment Display (Red)
+- 7x 220 Ohm Current-Limiting Resistors
+- 11.0592 MHz Crystal Oscillator + 2x 22pF Capacitors
+- +5V DC Regulated Power Supply
 
-- **Target Microcontroller:** AT89C51
-- **Oscillator / Clock Tree:** 11.0592 MHz Crystal
-- **Configured Pin Allocations:** Port 2 (P2.0 - P2.6) mapped to segments a, b, c, d, e, f, g
-- **External Hardware Peripherals:** Common Anode 7-Segment Display (SSD), 7x 220 Ohm Current Limiting Resistors, +5V Rail
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the exact hardware configuration, power rails, oscillator circuitry, and peripheral signal lines.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | 7-Segment Pin | Segment Controlled | Logic Level to Illuminate |
+|---|---|---|---|
+| P2.0 (Pin 21) | Pin 7 | Segment a (Top) | Active-LOW (0) |
+| P2.1 (Pin 22) | Pin 6 | Segment b (Top-Right) | Active-LOW (0) |
+| P2.2 (Pin 23) | Pin 4 | Segment c (Bottom-Right) | Active-LOW (0) |
+| P2.3 (Pin 24) | Pin 2 | Segment d (Bottom) | Active-LOW (0) |
+| P2.4 (Pin 25) | Pin 1 | Segment e (Bottom-Left) | Active-LOW (0) |
+| P2.5 (Pin 26) | Pin 9 | Segment f (Top-Left) | Active-LOW (0) |
+| P2.6 (Pin 27) | Pin 10 | Segment g (Middle) | Active-LOW (0) |
+| Display CA (Pins 3, 8) | +5.0V Rail | Common Anode Terminal | Connected to +5.0V |
 
-For Common Anode displays, the common terminal connects to +5V. Segment pins driven LOW sink current and illuminate. Table lookup: 0->0xC0, 1->0xF9, 2->0xA4, 3->0xB0, 4->0x99, 5->0x92, 6->0x82, 7->0xF8, 8->0x80, 9->0x90. Port 2 outputs each byte sequentially.
+### 5. Working Principle
+In Common Anode 7-segment displays, all internal LED anodes share a common terminal wired to +5.0V. Individual segments illuminate when their respective cathodes are connected to ground through current-limiting resistors. Driving a Port 2 pin LOW (0) causes current to sink into the 8051 output buffer, lighting the corresponding segment. A look-up table in ROM stores pre-calculated hexadecimal codes for digits 0-9: {0xC0, 0xF9, 0xA4, 0xB0, 0x99, 0x92, 0x82, 0xF8, 0x80, 0x90}.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Store segment lookup codes in code memory: `unsigned char code seg_code[10] = {...};`.
+2. Define software delay function `delay_ms(unsigned int ms)`.
+3. Inside `main()`:
+   a. For `digit = 0` to `9`:
+      i. Output segment byte to Port 2: `P2 = seg_code[digit];`.
+      ii. Delay 1000ms: `delay_ms(1000);`.
+   b. Wrap digit back to 0 and repeat continuously.
 
-1. Define code array seg_code[10] = {0xC0, 0xF9, 0xA4, 0xB0, 0x99, 0x92, 0x82, 0xF8, 0x80, 0x90}.
-2. In main loop:
-   a. For i = 0 to 9:
-      i. Write P2 = seg_code[i].
-      ii. Delay 1000ms.
-   b. Repeat continuously.
+### 7. Core Logic / Code Base
+Port 2 is mapped at SFR address 0xA0. Common anode codes are computed by setting active segment bits to 0 and inactive segments to 1 (e.g. Numeral '0' activates segments a,b,c,d,e,f -> bits 0..5 = 0, bit 6 = 1, bit 7 = 1 -> 11000000b = 0xC0).
 
-**Code Structure / Key Registers:**
-
-Look-up table in code ROM space, Port 2 byte assignment.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`main.c`):
 ```c
 #include <reg51.h>
 
@@ -71,6 +83,11 @@ void main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+Display smoothly advances through decimal numerals 0, 1, 2, ..., 9 once per second and loops continuously.
 
-Numerals 0 through 9 displayed crisply with uniform brightness. Common-anode active-low segment encoding functioned reliably.
+### 9. Observation
+Each numeral rendered with uniform brightness and crisp contrast. Current per illuminated segment: 9.8 mA.
+
+### 10. Inference
+Successfully verified active-LOW common anode decoding and static 7-segment hardware interfacing.

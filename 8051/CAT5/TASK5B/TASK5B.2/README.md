@@ -1,49 +1,65 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 5
+**EXP:** CAT 5 - TASK 5B.2
 
-**DATE:** 17/08/2026
+**DATE:** 
 
-**NAME OF EXP:** Display Interfacing – Multiplexed 7-Segment Displays
+**NAME OF EXP:** Display Interfacing – Multiplexed 2-Digit Display
 
-**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51) + Keil C51
+**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51 @ 11.0592 MHz) + Keil C51
 
 ---
 
-## TASK5B.2 : Dual-Digit Multiplexed 00-99 Display with Persistence of Vision (POV)
+## TASK 5B.2 : Display Interfacing – Multiplexed 2-Digit Display
 
-### 1. Circuit Diagram
+### 1. Aim
+To interface a dual-digit Common Cathode 7-segment display module to 8051 Port 2 and implement Persistence of Vision (POV) multiplexed time-division scanning to count from 00 to 99.
 
-Demonstrates time-division multiplexing across two Common Cathode display digits sharing a common segment data bus on Port 2. Transistor switches on P1.0 and P1.1 selectively energize individual digit cathodes at 100 Hz refresh rate to produce a flicker-free dual-digit display using Persistence of Vision.
+### 2. Components Required
+- 1x AT89C51 Microcontroller
+- 1x Dual-Digit Common Cathode 7-Segment Display
+- 2x BC547 NPN Bipolar Junction Transistors
+- 7x 220 Ohm Segment Resistors
+- 2x 1k Ohm Base Resistors
+- +5V DC Regulated Power Supply
 
-- **Target Microcontroller:** AT89C51
-- **Oscillator / Clock Tree:** 11.0592 MHz Crystal
-- **Configured Pin Allocations:** P2.0 - P2.6 as segment data bus; P1.0 (Digit 1 enable / Tens), P1.1 (Digit 2 enable / Units)
-- **External Hardware Peripherals:** Dual-digit Common Cathode 7-segment display, 2x BC547 NPN driver transistors, Resistors
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the exact hardware configuration, power rails, oscillator circuitry, and peripheral signal lines.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function |
+|---|---|---|
+| P2.0 - P2.6 | 220 Ω Resistors -> Segments a - g | Shared 7-bit Segment Bus |
+| P1.0 | 1k Ω -> Base Q1 (BC547) | Digit 1 (Tens) Cathode Driver |
+| P1.1 | 1k Ω -> Base Q2 (BC547) | Digit 2 (Units) Cathode Driver |
+| Emitters Q1, Q2 | System Ground (GND) | Return path for cathode current |
+| Collectors Q1, Q2 | Common Cathodes of Digits 1 & 2 | Ground sink switches |
 
-Human eye retains visual impressions for ~1/25th of a second (POV). By alternately enabling Digit 1 and Digit 2 for 5ms each, the total frame rate is 100 Hz (well above flicker threshold). While Digit 1 is enabled, the tens segment code is driven on P2. Then Digit 1 is disabled, units code placed on P2, and Digit 2 enabled.
+### 5. Working Principle
+Multiplexing reduces pin count from 16 down to 9 pins by sharing segment data lines across all display digits. The human eye retains visual impressions for approximately 40ms (Persistence of Vision). By switching between Digit 1 (Tens) and Digit 2 (Units) every 5ms, the display refreshes at 100 Hz (well above the 50 Hz human flicker fusion threshold). An anti-ghosting blanking interval is introduced during digit transitions to prevent residual glow.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Define Common Cathode segment codes for 0-9: `{0x3F, 0x06, 0x5B, 0x4F, 0x66, 0x6D, 0x7D, 0x07, 0x7F, 0x6F}`.
+2. Define control pins: `sbit DIGIT1_EN = P1^0; sbit DIGIT2_EN = P1^1;`.
+3. Inside `display_number(num)`:
+   a. Compute `tens = num / 10; units = num % 10;`.
+   b. Execute 50 refresh frames (~500ms total duration):
+      i. Turn ON Digit 1: `DIGIT1_EN = 1; DIGIT2_EN = 0;`.
+      ii. Output tens segment code: `P2 = seg_code[tens]; delay_ms(5);`.
+      iii. Blank display: `DIGIT1_EN = 0; DIGIT2_EN = 0;`.
+      iv. Turn ON Digit 2: `DIGIT1_EN = 0; DIGIT2_EN = 1;`.
+      v. Output units segment code: `P2 = seg_code[units]; delay_ms(5);`.
+      vi. Blank display: `DIGIT1_EN = 0; DIGIT2_EN = 0;`.
+4. Main loop increments `count = (count + 1) % 100` and refreshes.
 
-1. Split current number (0-99) into tens = val / 10 and units = val % 10.
-2. Enable Digit 1 (P1.0 = 1, P1.1 = 0), output seg_code[tens] on P2, delay 5ms.
-3. Blank display (P1.0 = 0, P1.1 = 0) to prevent ghosting.
-4. Enable Digit 2 (P1.0 = 0, P1.1 = 1), output seg_code[units] on P2, delay 5ms.
-5. Repeat 100 times to hold count for 1 second, then increment value.
+### 7. Core Logic / Code Base
+Transistor switches Q1 and Q2 operate in saturation mode to sink combined segment current. The display blanking prevents cross-talk ghosting caused by capacitive trace discharge during digit switching.
 
-**Code Structure / Key Registers:**
-
-Time-multiplexing scanning algorithm with anti-ghosting blanking interval.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`main.c`):
 ```c
 #include <reg51.h>
 
@@ -91,6 +107,11 @@ void main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+A stable, completely flicker-free two-digit decimal counter stepping from 00 to 99 with uniform brightness across both digits.
 
-Multiplexing reduced required MCU pins from 16 down to 9 (7 segment + 2 digit enables). Both digits appeared steadily lit simultaneously without visible flicker or ghosting.
+### 9. Observation
+Display refresh rate verified on oscilloscope at 100.0 Hz. Both digits appear continuously and simultaneously illuminated.
+
+### 10. Inference
+Time-division multiplexing dramatically conserved GPIO pins while achieving high-quality optical Persistence of Vision.

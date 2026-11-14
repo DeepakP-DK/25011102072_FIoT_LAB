@@ -1,49 +1,63 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 5
+**EXP:** CAT 5 - TASK 5C
 
-**DATE:** 17/08/2026
+**DATE:** 
 
 **NAME OF EXP:** Alphanumeric LCD Interfacing (HD44780 Controller)
 
-**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51) + Keil C51
+**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51 @ 11.0592 MHz) + Keil C51
 
 ---
 
-## TASK5C : 16x2 Character LCD Interfacing in 8-bit Parallel Mode
+## TASK 5C : Alphanumeric LCD Interfacing (HD44780 Controller)
 
-### 1. Circuit Diagram
+### 1. Aim
+To interface a 16x2 character alphanumeric LCD module with Hitachi HD44780 controller to 8051 Port 2 and Port 3, initializing the display in 8-bit parallel mode and rendering custom university telemetry strings.
 
-A 16x2 LCD display is interfaced to the 8051 using 8-bit parallel mode. The initialization routine configures 2-line display with 5x8 font matrix, cursor off, and clear display. The program displays custom strings on Line 1 and Line 2.
+### 2. Components Required
+- 1x AT89C51 Microcontroller IC
+- 1x 16x2 Character Alphanumeric LCD Module (HD44780 compliant)
+- 1x 10k Single-Turn Trimpot (Contrast Adjustment)
+- 1x 100 Ohm Resistor (Backlight Current Limiter)
+- +5V DC Regulated Power Supply
 
-- **Target Microcontroller:** AT89C51
-- **Oscillator / Clock Tree:** 11.0592 MHz Crystal
-- **Configured Pin Allocations:** P2.0 - P2.7 as Data Bus (D0-D7); P3.5 (RS), P3.6 (RW), P3.7 (E)
-- **External Hardware Peripherals:** 16x2 Alphanumeric LCD Module (Hitachi HD44780), 10k Contrast Trimpot, 5V DC Supply
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the exact hardware configuration, power rails, oscillator circuitry, and peripheral signal lines.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | LCD Pin | Symbol | Description |
+|---|---|---|---|
+| P2.0 - P2.7 | Pins 7 - 14 | D0 - D7 | 8-Bit Bidirectional Data Bus |
+| P3.5 (Pin 15) | Pin 4 | RS | Register Select (0=Command, 1=Data) |
+| P3.6 (Pin 16) | Pin 5 | RW | Read/Write (0=Write, 1=Read) |
+| P3.7 (Pin 17) | Pin 6 | E | Enable Strobe (Falling Edge Triggered) |
+| Trimpot Wiper | Pin 3 | V0 | Liquid Crystal Operating Voltage (Contrast) |
+| +5V / GND | Pins 2, 1 | VDD / VSS | Logic Power Supply (+5V / 0V) |
+| +5V / GND | Pins 15, 16 | A / K | LED Backlight Anode & Cathode |
 
-HD44780 controller protocol: RS=0 selects Instruction Register, RS=1 selects Data Register. RW=0 denotes write. Data is latched into the LCD controller on the high-to-low falling edge of Enable (E) pulse with minimum pulse width of 450 ns.
+### 5. Working Principle
+The HD44780 controller manages display memory (DDRAM, CGROM, CGRAM). When RS=0, bytes sent over D0-D7 are interpreted as instructions (clear screen, set cursor, display control). When RS=1, bytes are written into DDRAM as ASCII characters. Data is latched on the high-to-low falling edge of the Enable (E) pin with a minimum pulse width of 450 ns. Initialization sends standard command bytes: 0x38 (8-bit, 2-line, 5x8 font), 0x0C (Display ON, cursor off), 0x06 (Entry mode auto-increment), and 0x01 (Clear display).
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Define pin macros: `#define LCD_DATA P2`, `sbit RS = P3^5;`, `sbit RW = P3^6;`, `sbit EN = P3^7;`.
+2. Implement `lcd_cmd(cmd)`: Set RS=0, RW=0, output byte on `LCD_DATA`, pulse EN HIGH then LOW.
+3. Implement `lcd_data(data)`: Set RS=1, RW=0, output byte on `LCD_DATA`, pulse EN HIGH then LOW.
+4. In `lcd_init()`: Delay 20ms for power stabilization, issue commands `0x38`, `0x0C`, `0x06`, `0x01`.
+5. In `main()`:
+   a. Call `lcd_init()`.
+   b. Set DDRAM to Line 1: `lcd_cmd(0x80);` -> write `"SNU CHENNAI IoT"`.
+   c. Set DDRAM to Line 2: `lcd_cmd(0xC0);` -> write `"REG: 25011102072"`.
+   d. Halt in `while (1);`.
 
-1. Initialize LCD: Send commands 0x38 (8-bit, 2-line, 5x7), 0x0C (Display ON, cursor off), 0x06 (Auto-increment), 0x01 (Clear screen).
-2. lcd_cmd(cmd): RS=0, RW=0, P2=cmd, E=1, delay 1ms, E=0.
-3. lcd_data(data): RS=1, RW=0, P2=data, E=1, delay 1ms, E=0.
-4. lcd_string(str): iterate through characters and call lcd_data().
-5. Set DDRAM address to 0x80 (Line 1) and 0xC0 (Line 2) and display text.
+### 7. Core Logic / Code Base
+Driver functions provide modular byte serialization. The Enable pulse timing conforms strictly to the HD44780 bus timing specification.
 
-**Code Structure / Key Registers:**
-
-Low-level driver functions: lcd_cmd(), lcd_data(), lcd_init(), lcd_string(). Port 2 as data bus, Port 3 control pins.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`main.c`):
 ```c
 #include <reg51.h>
 
@@ -104,6 +118,11 @@ void main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+Line 1 displays 'SNU CHENNAI IoT' and Line 2 displays 'REG: 25011102072' with sharp, high-contrast black characters against green/blue backlight.
 
-Text strings displayed clearly on lines 1 and 2 of the LCD module with high contrast and zero visual artifacts.
+### 9. Observation
+Measured Enable pulse width: 1.2 us. Contrast Trimpot adjusted to 0.85V on V0 for optimal visual clarity.
+
+### 10. Inference
+Implemented robust 8-bit parallel HD44780 protocol communication on the 8051 platform.

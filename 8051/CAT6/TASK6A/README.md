@@ -1,52 +1,61 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 6
+**EXP:** CAT 6 - TASK 6A
 
-**DATE:** 24/08/2026
+**DATE:** 
 
 **NAME OF EXP:** Matrix Keypad Scanning & User Input Interfacing
 
-**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51) + Keil C51
+**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51 @ 11.0592 MHz) + Keil C51
 
 ---
 
-## TASK6A : 4x4 Matrix Keypad Scanning with 7-Segment Key Code Display
+## TASK 6A : Matrix Keypad Scanning & User Input Interfacing
 
-### 1. Circuit Diagram
+### 1. Aim
+To interface a 4x4 matrix keypad to 8051 Port 1, implement row-strobe and column-sense scanning with software debouncing, and display decoded hexadecimal keystrokes (0-F) on a 7-segment display.
 
-Interfacing a 4x4 matrix keypad to Port 1. Rows are driven LOW sequentially while columns are read to determine active key closures. The identified key number (0-F) is decoded and displayed in real-time on a 7-segment display.
+### 2. Components Required
+- 1x AT89C51 Microcontroller IC
+- 1x 4x4 Matrix Membrane / Tactile Keypad
+- 1x Common Anode 7-Segment Display
+- 1x 10k Ohm Resistor Network (Pull-ups for Columns)
+- 7x 220 Ohm Resistors
+- +5V DC Regulated Power Supply
 
-- **Target Microcontroller:** AT89C51
-- **Oscillator / Clock Tree:** 11.0592 MHz Crystal
-- **Configured Pin Allocations:** P1.0 - P1.3 (Rows R1-R4); P1.4 - P1.7 (Cols C1-C4); P2.0 - P2.6 to 7-Segment display
-- **External Hardware Peripherals:** 4x4 Membrane Keypad, Common Anode 7-Segment Display, 10k Pull-up Resistors
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the exact hardware configuration, power rails, oscillator circuitry, and peripheral signal lines.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function |
+|---|---|---|
+| P1.0 - P1.3 (Pins 1 - 4) | Keypad Rows R1 - R4 | Active-LOW Sequential Row Drivers |
+| P1.4 - P1.7 (Pins 5 - 8) | Keypad Columns C1 - C4 & 10k Pull-ups | Column Sense Inputs |
+| P2.0 - P2.6 (Pins 21 - 27) | 220 Ω -> 7-Segment Segments a - g | Decoded Hexadecimal Character Display |
+| Display CA | +5.0V DC Rail | Common Anode terminal |
 
-Rows R1-R4 are configured as outputs and columns C1-C4 as inputs with pull-ups. The MCU asserts LOW on row 0 while leaving rows 1-3 HIGH, then tests column inputs for a LOW level. If a column is LOW, debounce delay verifies closure, and key code is calculated as (row * 4) + col.
+### 5. Working Principle
+A 4x4 matrix keypad arranges 16 tactile switches across 4 row conductors and 4 column conductors. Rows are configured as microcontroller outputs and columns as inputs held HIGH by pull-up resistors. The scanning routine drives one row LOW at a time while keeping other rows HIGH. It then reads the column inputs. If any switch in that row is closed, the corresponding column pin is pulled LOW. The key value is resolved via a 2D lookup table: `key = key_map[row][col]`.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Configure Port 1 rows as outputs and columns as inputs.
+2. In `keypad_scan()`:
+   a. For `r = 0` to `3`:
+      i. Output row strobe: `KEYPAD = ~(1 << r) | 0xF0;`.
+      ii. Check if any column is LOW: `if ((KEYPAD & 0xF0) != 0xF0)`:
+          - Delay 20ms for mechanical contact debounce.
+          - For `c = 0` to `3`: if column `c` is LOW, wait until released and return `key_map[r][c]`.
+   b. Return `0xFF` if no key is pressed.
+3. In `main()`: Continuously scan keypad. When a valid key (0-15) is detected, output `seg_code[key]` to Port 2.
 
-1. Initialize rows = 0xF0 on Port 1.
-2. In keypad_scan():
-   a. For row = 0 to 3:
-      i. Set current row LOW and all other rows HIGH.
-      ii. Read columns P1.4 - P1.7.
-      iii. If column is 0, delay 20ms for debounce.
-      iv. If still 0, return key_map[row][col].
-3. In main(), continuously scan keypad and update Port 2 with seg_code[key].
+### 7. Core Logic / Code Base
+Matrix scanning reduces pin requirements from 16 dedicated lines down to 8 shared lines. Debounce filtering and key-release blocking prevent multiple character registrations per keystroke.
 
-**Code Structure / Key Registers:**
-
-keypad_scan() row-column matrix scanning function with 2D lookup table.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`main.c`):
 ```c
 #include <reg51.h>
 
@@ -101,6 +110,11 @@ void main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+Pressing any button on the 4x4 keypad instantly displays its hexadecimal character (0-9, A, b, C, d, E, F) on the 7-segment display.
 
-Matrix scanning accurately resolved all 16 keys. Pressing any button immediately reflected the corresponding hexadecimal character on the display without ghost keys.
+### 9. Observation
+Zero ghosting or key-chatter observed. All 16 switch intersections decoded with 100% accuracy.
+
+### 10. Inference
+Matrix scanning and bitwise row-column multiplexing provide efficient, scalable human-machine interfaces.

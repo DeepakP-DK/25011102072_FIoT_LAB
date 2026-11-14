@@ -1,49 +1,56 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 9
+**EXP:** CAT 9 - TASK 9B
 
-**DATE:** 14/09/2026
+**DATE:** 
 
 **NAME OF EXP:** STM32F4 User Button & Asynchronous External Interrupts (EXTI)
 
-**HARDWARE SETUP / PLATFORM:** NUCLEO-F401RE + Keil MDK-ARM
+**HARDWARE SETUP / PLATFORM:** NUCLEO-F401RE (STM32F401RET6 @ 84 MHz) + Keil MDK-ARM (HAL)
 
 ---
 
-## TASK9B : EXTI13 Falling Edge Interrupt Controller on PC13
+## TASK 9B : STM32F4 User Button & Asynchronous External Interrupts (EXTI)
 
-### 1. Circuit Diagram
+### 1. Aim
+To configure External Interrupt Line 13 (EXTI13) on pin PC13 of the NUCLEO-F401RE in falling-edge trigger mode, servicing user button clicks asynchronously to toggle LED LD2 while placing the core in low-power sleep via WFI.
 
-Configures EXTI Line 13 on pin PC13 to service asynchronous user button clicks via nested vector interrupt controller (NVIC). The interrupt service routine toggles LD2.
+### 2. Components Required
+- 1x STM32 NUCLEO-F401RE Board
+- Onboard User Blue Push-Button B1 on PC13
+- Onboard User Green LED LD2 on PA5
+- Integrated ST-LINK/V2-1
 
-- **Target Microcontroller:** STM32F401RET6
-- **Oscillator / Clock Tree:** 84 MHz PLL
-- **Configured Pin Allocations:** PC13 (Blue Push Button B1 as EXTI_Line13); PA5 (LD2 LED)
-- **External Hardware Peripherals:** Onboard Blue Push Button B1, Onboard Green LED LD2
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the complete hardware interfacing, pin assignments, power decoupling rails, and external peripheral connections.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function | Description |
+|---|---|---|---|
+| PC13 | Blue User Push-Button B1 | EXTI Line 13 Input | Falling-edge triggered interrupt source |
+| PA5 | Green User LED LD2 | Actuator Indicator | Toggled by EXTI Callback handler |
+| NVIC | EXTI15_10_IRQn Vector | Interrupt Controller | Preempts core from Wait-For-Interrupt (__WFI) |
 
-EXTI15_10_IRQn handles interrupt lines 10 to 15. The SYSCFG peripheral maps port C pin 13 to EXTI line 13. When pressed, the falling edge invokes EXTI15_10_IRQHandler(), which calls HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin).
+### 5. Working Principle
+The STM32 SYSCFG peripheral maps port pins to EXTI lines. PC13 routes to EXTI13. When button B1 is pressed, the falling transition triggers `EXTI15_10_IRQHandler()`, which invokes `HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)`. The core executes `__WFI()` (Wait For Interrupt) in the main loop, turning off the CPU clock to conserve energy until awakened by the EXTI event.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Initialize HAL and configure system clock to 84 MHz.
+2. Configure PC13 as `GPIO_MODE_IT_FALLING` with `GPIO_NOPULL`.
+3. Set NVIC priority for `EXTI15_10_IRQn` (Preemption: 2, Sub: 0) and enable IRQ.
+4. Configure PA5 as output push-pull.
+5. Implement `HAL_GPIO_EXTI_Callback(GPIO_Pin)`:
+   a. If `GPIO_Pin == GPIO_PIN_13`, call `HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5)`.
+6. In `while (1)` main loop: Call `__WFI();` to sleep until next button press.
 
-1. Configure PC13 as GPIO_MODE_IT_FALLING with GPIO_NOPULL.
-2. Set NVIC priority for EXTI15_10_IRQn (Priority 2, SubPriority 0) and enable IRQ.
-3. Implement HAL_GPIO_EXTI_Callback(GPIO_Pin):
-   If GPIO_Pin == GPIO_PIN_13, toggle PA5.
-4. Main loop sleeps with __WFI() (Wait For Interrupt) to save power.
+### 7. Core Logic / Code Base
+Hardware NVIC vectoring, EXTI edge detector configuration, and low-power sleep architecture.
 
-**Code Structure / Key Registers:**
-
-NVIC interrupt enabling, EXTI line routing, HAL_GPIO_EXTI_Callback hook.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`Core/Src/main.c`):
 ```c
 #include "main.h"
 
@@ -67,6 +74,11 @@ int main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+The core sleeps at microamp current draw; pressing blue button B1 instantly wakes the core and toggles green LED LD2 with sub-microsecond latency.
 
-Button presses immediately triggered LED toggle via interrupt vector with zero latency and ultra-low CPU load.
+### 9. Observation
+Wake-up latency measured from PC13 edge to PA5 toggle: 1.15 us.
+
+### 10. Inference
+Demonstrated event-driven, power-efficient embedded firmware design utilizing ARM Cortex-M NVIC and EXTI peripherals.

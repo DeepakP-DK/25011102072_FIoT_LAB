@@ -1,54 +1,60 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 11
+**EXP:** CAT 11 - TASK 11B
 
-**DATE:** 28/09/2026
+**DATE:** 
 
 **NAME OF EXP:** Serial Communication – Interrupt-Driven Command Interpreter
 
-**HARDWARE SETUP / PLATFORM:** NUCLEO-F401RE + Keil MDK-ARM (HAL)
+**HARDWARE SETUP / PLATFORM:** NUCLEO-F401RE (STM32F401RET6 @ 84 MHz) + Keil MDK-ARM (HAL)
 
 ---
 
-## TASK11B : Interrupt-Driven Interactive Command Line Shell via USART2
+## TASK 11B : Serial Communication – Interrupt-Driven Command Interpreter
 
-### 1. Circuit Diagram
+### 1. Aim
+To implement a non-blocking, interrupt-driven Command Line Interface (CLI) shell over USART2, processing incoming character streams via RX interrupts, buffering full commands, and actuating user LED LD2.
 
-Implements an asynchronous non-blocking command interpreter. Characters received via UART RX interrupts populate a circular command buffer. Commands like 'LED ON', 'LED OFF', and 'STATUS' parse and execute in real-time.
+### 2. Components Required
+- 1x STM32 NUCLEO-F401RE Board
+- Onboard ST-LINK VCP
+- Host PC Interactive Serial Terminal (PuTTY)
+- Green User LED LD2 on PA5
 
-- **Target Microcontroller:** STM32F401RET6
-- **Oscillator / Clock Tree:** 84 MHz PLL
-- **Configured Pin Allocations:** PA2 (USART2_TX), PA3 (USART2_RX); PA5 (LD2 LED)
-- **External Hardware Peripherals:** ST-LINK VCP, PC Terminal Emulator
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the complete hardware interfacing, pin assignments, power decoupling rails, and external peripheral connections.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function | Description |
+|---|---|---|---|
+| PA2 / PA3 | ST-LINK VCP | USART2 TX / RX | Asynchronous Serial Command Bus (115200 bps) |
+| PA5 | User LED LD2 | Actuator Target | Toggled by parsed 'ON' / 'OFF' commands |
+| NVIC | USART2_IRQn Vector | Interrupt Controller | Serves byte arrivals non-blockingly |
 
-HAL_UART_Receive_IT(&huart2, &rx_char, 1) arms the RXNE interrupt. Each received byte triggers USART2_IRQHandler() -> HAL_UART_RxCpltCallback(). When newline (0x0D/0x0A) arrives, the command dispatcher parses the string.
+### 5. Working Principle
+Polling UART for user keystrokes stalls the CPU and risks byte drops. Instead, the firmware arms the RX interrupt using `HAL_UART_Receive_IT(&huart2, &rx_byte, 1)`. When a byte arrives, the hardware triggers `USART2_IRQHandler()`, invoking `HAL_UART_RxCpltCallback()`. Arriving characters are placed into a circular command buffer. When a carriage return (`\r` or `\n`) is received, the string is null-terminated and a `cmd_ready` flag is set. The main loop evaluates the command string (`ON` -> PA5 HIGH, `OFF` -> PA5 LOW) without blocking background operations.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Initialize USART2 and GPIO PA5.
+2. Arm non-blocking RX interrupt: `HAL_UART_Receive_IT(&huart2, &rx_byte, 1);`.
+3. In `HAL_UART_RxCpltCallback(huart)`:
+   a. If `rx_byte == '\r'` or `'\n'`, set `cmd_ready = 1`.
+   b. Else append `rx_byte` into `rx_buf[rx_idx++]`.
+   c. Re-arm interrupt: `HAL_UART_Receive_IT(&huart2, &rx_byte, 1);`.
+4. In main loop `while (1)`:
+   a. If `cmd_ready == 1`:
+      - If `strcmp(rx_buf, "ON") == 0`: Turn ON LD2.
+      - If `strcmp(rx_buf, "OFF") == 0`: Turn OFF LD2.
+      - Reset `cmd_ready = 0` and `rx_idx = 0`.
 
-1. Arm RX interrupt: HAL_UART_Receive_IT(&huart2, &rx_byte, 1).
-2. In HAL_UART_RxCpltCallback():
-   a. Append rx_byte to buffer.
-   b. Echo byte back to terminal.
-   c. If rx_byte == '': set cmd_ready flag.
-   d. Re-arm RX interrupt.
-3. In main loop:
-   a. If cmd_ready:
-      Parse command ('ON' -> PA5 SET, 'OFF' -> PA5 RESET).
-      Clear buffer and reset flag.
+### 7. Core Logic / Code Base
+Interrupt-driven circular buffering with asynchronous command token dispatching.
 
-**Code Structure / Key Registers:**
-
-HAL_UART_Receive_IT, HAL_UART_RxCpltCallback, string token parsing.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`Core/Src/main.c`):
 ```c
 #include "main.h"
 #include <string.h>
@@ -92,6 +98,11 @@ int main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+Typing 'ON' into the terminal turns ON the green LED LD2; typing 'OFF' extinguishes it immediately without interrupting background tasks.
 
-CLI shell accepted ASCII text commands asynchronously while the main loop continued normal task execution without stalling.
+### 9. Observation
+Zero CPU cycle wasted polling. Commands processed instantaneously upon Enter keystroke.
+
+### 10. Inference
+Interrupt-driven serial communication provides deterministic, responsive human-in-the-loop control for embedded systems.

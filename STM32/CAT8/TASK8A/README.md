@@ -1,51 +1,60 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 8
+**EXP:** CAT 8 - TASK 8A
 
-**DATE:** 07/09/2026
+**DATE:** 
 
 **NAME OF EXP:** STM32 GPIO Bring-Up & Basic Output Control
 
-**HARDWARE SETUP / PLATFORM:** STM32F103C8T6 (Blue Pill) + STM32CubeMX + Keil MDK-ARM (HAL)
+**HARDWARE SETUP / PLATFORM:** STM32 Blue Pill Board (STM32F103C8T6 @ 72 MHz) + Keil MDK-ARM (HAL)
 
 ---
 
-## TASK8A : Onboard LED Blinker with SysTick Timebase on PC13
+## TASK 8A : STM32 GPIO Bring-Up & Basic Output Control
 
-### 1. Circuit Diagram
+### 1. Aim
+To configure GPIO Port C Pin 13 of the STM32F103C8T6 microcontroller as a digital push-pull output and toggle the onboard user LED at 1 Hz using the Cortex-M SysTick timebase.
 
-Configuring the STM32F103C8T6 Blue Pill GPIO port C pin 13 using STM32CubeMX HAL. The system clock is initialized to 72 MHz through the Phase-Locked Loop (PLL). Pin PC13 toggles every 500 ms using HAL_Delay().
+### 2. Components Required
+- 1x STM32F103C8T6 Blue Pill Development Board (ARM Cortex-M3)
+- 1x ST-LINK V2 In-Circuit Debugger / Programmer
+- Onboard User SMD LED (connected to PC13 through 510 Ohm to 3.3V)
+- 8.0 MHz External Crystal (HSE) on Blue Pill
+- Micro-USB Cable & Jumper Wires
 
-- **Target Microcontroller:** STM32F103C8T6 (ARM Cortex-M3)
-- **Oscillator / Clock Tree:** 72 MHz via HSE (8 MHz crystal + PLL multiplier x9)
-- **Configured Pin Allocations:** PC13 configured as GPIO Output (Push-Pull, Low speed)
-- **External Hardware Peripherals:** Onboard Green LED (active low on PC13), 8 MHz crystal oscillator, ST-LINK V2
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the complete hardware interfacing, pin assignments, power decoupling rails, and external peripheral connections.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function | Direction / Logic |
+|---|---|---|---|
+| PC13 | Onboard SMD User LED | Indicator Output | Active-LOW (0 = ON, 1 = OFF) |
+| PA13 (SWDIO) | ST-LINK V2 SWDIO Pin | Serial Wire Data Input/Output | Debug Interface |
+| PA14 (SWCLK) | ST-LINK V2 SWCLK Pin | Serial Wire Clock Line | Debug Interface |
+| +3.3V & GND | ST-LINK +3.3V & GND | Target Operating Power | Regulated 3.3V Rail |
+| BOOT0 / BOOT1 | Jumpers tied to GND | Flash Memory Boot Selection | Normal Operation |
 
-The onboard LED on the Blue Pill is wired between +3.3V and PC13 (active-low configuration). Driving PC13 LOW illuminates the LED; driving PC13 HIGH extinguishes it. HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13) alternates the output latch.
+### 5. Working Principle
+The STM32F103C8T6 contains a 32-bit ARM Cortex-M3 core operating at up to 72 MHz. The onboard user LED on PC13 is wired in active-LOW configuration (anode tied through 510 Ohm to +3.3V). Calling `HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_RESET)` sinks current and turns ON the LED. Calling `HAL_Delay(500)` utilizes the 1ms Cortex-M SysTick hardware counter to generate non-drifting millisecond delays.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Call `HAL_Init()` to initialize Flash interface, Systick timer, and NVIC priority grouping.
+2. Configure System Clock to 72 MHz using HSE (8 MHz) and PLL multiplication (x9).
+3. Enable GPIOC clock gate: `__HAL_RCC_GPIOC_CLK_ENABLE()`.
+4. Configure PC13 as `GPIO_MODE_OUTPUT_PP`, `GPIO_NOPULL`, `GPIO_SPEED_FREQ_LOW`.
+5. In the `while (1)` super-loop:
+   a. Toggle PC13: `HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);`.
+   b. Delay 500ms: `HAL_Delay(500);`.
+6. Repeat indefinitely.
 
-1. Call HAL_Init() to reset peripherals, initialize Flash interface and Systick.
-2. Configure System Clock to 72 MHz (HSE -> PLL -> SYSCLK).
-3. Enable GPIOC peripheral clock (__HAL_RCC_GPIOC_CLK_ENABLE()).
-4. Configure PC13 as GPIO_MODE_OUTPUT_PP, GPIO_NOPULL, GPIO_SPEED_FREQ_LOW.
-5. In while(1) loop:
-   a. HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-   b. HAL_Delay(500);
+### 7. Core Logic / Code Base
+Standard STM32 HAL GPIO APIs: `HAL_GPIO_TogglePin()` and `HAL_Delay()` driven by the 1ms SysTick interrupt handler.
 
-**Code Structure / Key Registers:**
-
-CubeMX generated main.c with HAL_GPIO_TogglePin and HAL_Delay APIs.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`Core/Src/main.c`):
 ```c
 #include "main.h"
 
@@ -76,6 +85,11 @@ static void MX_GPIO_Init(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+The onboard green LED on PC13 blinks symmetrically at exactly 1.0 Hz (500ms ON, 500ms OFF).
 
-PC13 onboard LED toggled precisely at 1 Hz (500 ms ON, 500 ms OFF). SysTick interrupt generated accurate millisecond timebase.
+### 9. Observation
+Oscilloscope frequency measurement at PC13: 1.000 Hz, 50.0% duty cycle, 3.30V logic high.
+
+### 10. Inference
+Successfully initialized the STM32F103 hardware platform and validated HAL GPIO output and SysTick timing.

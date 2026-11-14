@@ -1,54 +1,66 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 3
+**EXP:** CAT 3 - TASK 3A
 
-**DATE:** 03/08/2026
+**DATE:** 
 
 **NAME OF EXP:** Switch Interfacing & Software Debouncing Techniques
 
-**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51) + Keil C51
+**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51 / AT89S52 @ 11.0592 MHz) + Keil C51
 
 ---
 
-## TASK3A : Debounced Push-Button Counter with LED Status Indication
+## TASK 3A : Switch Interfacing & Software Debouncing Techniques
 
-### 1. Circuit Diagram
+### 1. Aim
+To interface an external tactile push-button switch to 8051 GPIO pin P3.2, implement a 20ms software debounce verification filter, and drive an incremental 4-bit binary counter on Port 1 LEDs.
 
-A momentary push-button switch is interfaced to P3.2 with an external 10k pull-up resistor. Four LEDs on P1.0 - P1.3 indicate a 4-bit binary counter value (0x0 to 0xF). A 20ms software debounce verification algorithm filters mechanical contact bounce transients before incrementing the counter on each valid switch press.
+### 2. Components Required
+- 1x AT89C51 / AT89S52 Microcontroller
+- 1x 6x6mm Momentary Tactile Push-Button Switch
+- 1x 10k Ohm (0.25W) External Pull-Up Resistor
+- 4x 5mm Green LEDs
+- 4x 330 Ohm Current-Limiting Resistors
+- 11.0592 MHz Crystal Oscillator + 2x 22pF Capacitors
+- +5V DC Regulated Power Supply
 
-- **Target Microcontroller:** AT89C51
-- **Oscillator / Clock Tree:** 11.0592 MHz Crystal
-- **Configured Pin Allocations:** P3.2 (INT0 pin / GPIO) as tactile switch input; P1.0 - P1.3 as 4-bit binary LED counter output
-- **External Hardware Peripherals:** Tactile Push Button, 10k Pull-up Resistor, 4x Green LEDs with 330 Ohm resistors
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the exact hardware configuration, power rails, oscillator circuitry, and peripheral signal lines.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Functional Description |
+|---|---|---|
+| P3.2 (Pin 12) | Tactile Switch & 10k Pull-up to +5V | Active-LOW digital input pin |
+| Switch Terminal 2 | System Ground (GND) | Pulls P3.2 LOW upon mechanical contact |
+| P1.0 - P1.3 (Pins 1 - 4) | 330 Ω Resistors -> LED Cathodes | 4-bit Binary Counter Display Nibble |
+| LED Anodes | +5.0V Power Bus | Common Anode supply |
+| RST (Pin 9) | 10uF Cap to VCC & 10k to GND | Hardware Reset circuit |
+| EA (Pin 31) | Tied to +5.0V | Internal program code fetch |
 
-Mechanical switch contacts chatter for 5 to 15 milliseconds upon closure. To prevent false multi-triggering, the firmware samples P3.2 upon detecting a LOW state, executes a 20ms delay, and re-samples P3.2. If the pin remains LOW, a confirmed button press event is logged. The code then awaits button release before registering another state change.
+### 5. Working Principle
+Mechanical switch contacts chatter on closure and opening for 5 to 15 milliseconds due to spring elasticity, producing spurious edge triggers. To reliably sample keystrokes without hardware RC filters, a software debounce routine is executed. When P3.2 transitions from HIGH to LOW, the CPU halts for 20ms and re-samples P3.2. If the logic level remains LOW, the key closure is confirmed genuine. The 4-bit counter increments, and execution blocks until the button is released, preventing unintended auto-incrementation.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Include `<reg51.h>` and define `sbit SW = P3^2;`.
+2. Initialize P3.2 as input by writing logic 1 (`SW = 1;`).
+3. Clear display LEDs on Port 1 (`P1 = 0xFF;`).
+4. Inside the main loop:
+   a. Poll `SW`. If `SW == 0` (falling edge detected):
+      i. Call `delay_ms(20)` to bypass mechanical contact bounce transients.
+      ii. Re-evaluate `SW`. If still 0, increment `count = (count + 1) & 0x0F`.
+      iii. Write inverted count onto Port 1 (`P1 = ~(count);`).
+      iv. Wait in `while (SW == 0);` until the switch is released.
+      v. Call `delay_ms(20)` to filter release contact bounce.
+5. Continue polling.
 
-1. Initialize P3.2 as input by writing '1' to P3.2.
-2. Initialize Port 1 counter display to 0x00.
-3. Loop continuously:
-   a. Read P3.2; if P3.2 == 0 (switch pressed):
-      i. Execute 20ms debounce delay.
-      ii. If P3.2 is still 0:
-          Increment counter variable (counter = (counter + 1) & 0x0F).
-          Output counter onto P1 (P1 = ~counter for active-low LEDs).
-          Wait in while(P3.2 == 0) loop until switch is released.
-          Execute 20ms release debounce delay.
+### 7. Core Logic / Code Base
+The bitwise masking `count = (count + 1) & 0x0F` restricts the counter to a 4-bit range (0 to 15). The Port 1 output uses bitwise inversion `~count` to correctly drive active-LOW LEDs.
 
-**Code Structure / Key Registers:**
-
-sbit SW = P3^2; Port 1 lower nibble mapped to display LEDs. Debounce delay using software loop.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`main.c`):
 ```c
 #include <reg51.h>
 
@@ -80,6 +92,11 @@ void main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+Each physical press of the push-button increments the 4-bit binary representation on LEDs from 0000b to 1111b and wraps cleanly back to 0000b without false multi-counts.
 
-Mechanical bounce was completely eliminated. Every single switch press cleanly incremented the binary counter on P1 from 0 to 15 without accidental double-counting, confirming effective debounce logic.
+### 9. Observation
+Zero bounce artifacts observed. Rapid continuous pressing reliably advanced the counter one count per click.
+
+### 10. Inference
+Software debouncing completely mitigated mechanical contact bounce, providing robust user input acquisition.

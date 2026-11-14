@@ -1,49 +1,56 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 12
+**EXP:** CAT 12 - TASK 12B
 
-**DATE:** 05/10/2026
+**DATE:** 
 
 **NAME OF EXP:** I2C Sensor Bus – Bosch BME280 Register Interfacing
 
-**HARDWARE SETUP / PLATFORM:** STM32F103C8T6 + Keil MDK-ARM (HAL)
+**HARDWARE SETUP / PLATFORM:** STM32 Blue Pill Board (STM32F103C8T6 @ 72 MHz) + Keil MDK-ARM (HAL)
 
 ---
 
-## TASK12B : Bosch Sensortec BME280 Chip ID & Factory Calibration Retrieval
+## TASK 12B : I2C Sensor Bus – Bosch BME280 Register Interfacing
 
-### 1. Circuit Diagram
+### 1. Aim
+To interface the Bosch Sensortec BME280 digital sensor via I2C1, read the silicon Chip ID register (0xD0) to verify authentic hardware, and download factory NVM trimming calibration coefficient tables.
 
-Reads the Chip Identification register (0xD0) of the Bosch BME280 via I2C to verify silicon version (expected value: 0x60). Downloads factory trimmed temperature, pressure, and humidity calibration coefficient tables.
+### 2. Components Required
+- 1x STM32F103C8T6 Blue Pill Board
+- 1x Bosch BME280 Sensor Breakout
+- 2x 4.7k Ohm Pull-Up Resistors
+- ST-LINK V2 & Serial Terminal
 
-- **Target Microcontroller:** STM32F103C8T6
-- **Oscillator / Clock Tree:** 72 MHz PLL
-- **Configured Pin Allocations:** PB6 (I2C1_SCL), PB7 (I2C1_SDA); USART1 PA9/PA10 for debug telemetry
-- **External Hardware Peripherals:** BME280 Barometric Pressure, Temperature & Humidity Sensor, ST-LINK VCP
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the complete hardware interfacing, pin assignments, power decoupling rails, and external peripheral connections.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | BME280 Pin | Function | Description |
+|---|---|---|---|
+| PB6 / PB7 | SCL / SDA | I2C1 Bus Lines | Master I2C Communication Lines |
+| BME280 SDO | System Ground | Hardware Address Pin | Sets 7-bit address to 0x76 |
+| PA9 | Host Terminal RX | USART1 Telemetry | Displays Chip ID & Calibration Registers |
 
-BME280 register 0xD0 holds fixed ID 0x60. The MCU performs a memory read using HAL_I2C_Mem_Read(&hi2c1, 0xEC, 0xD0, I2C_MEMADD_SIZE_8BIT, &chip_id, 1, 100). Factory calibration parameters (dig_T1-T3, dig_P1-P9, dig_H1-H6) are parsed from non-volatile NVM registers.
+### 5. Working Principle
+The Bosch BME280 contains a dedicated Chip Identification register at memory address 0xD0, which holds fixed factory signature 0x60. The STM32 issues a memory read via `HAL_I2C_Mem_Read(&hi2c1, (0x76 << 1), 0xD0, I2C_MEMADD_SIZE_8BIT, &chip_id, 1, 100)`. Upon successful signature verification, factory trimming parameters stored in non-volatile memory (dig_T1..T3, dig_P1..P9, dig_H1..H6) are downloaded to serve as calibration constants for physical compensation math.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Initialize I2C1 at 100 kHz.
+2. Read register 0xD0: `HAL_I2C_Mem_Read(&hi2c1, 0xEC, 0xD0, 1, &chip_id, 1, 100);`.
+3. If `chip_id == 0x60`, confirm authentic Bosch BME280 silicon.
+4. Read temperature calibration bytes from address 0x88 to 0x8D.
+5. Read pressure calibration bytes from address 0x8E to 0x9F.
+6. Read humidity calibration bytes from address 0xA1 and 0xE1 to 0xE7.
+7. Parse and print parameters to serial console.
 
-1. Initialize I2C1 and USART1.
-2. Read register 0xD0; verify chip_id == 0x60.
-3. Read calibration bytes: 0x88 to 0xA1 (Temperature and Pressure trim parameters).
-4. Read calibration bytes: 0xE1 to 0xE7 (Humidity trim parameters).
-5. Format and print calibration coefficients over USART1.
+### 7. Core Logic / Code Base
+Direct register-level memory reading using `HAL_I2C_Mem_Read()` with 8-bit memory address pointer addressing.
 
-**Code Structure / Key Registers:**
-
-HAL_I2C_Mem_Read memory read APIs, factory compensation register map.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`Core/Src/main.c`):
 ```c
 #include "main.h"
 
@@ -68,6 +75,11 @@ int main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+Register 0xD0 returns exactly `0x60`. Trimming parameters are successfully loaded into memory structures.
 
-Register 0xD0 returned exactly 0x60, confirming authentic Bosch BME280 silicon. Factory calibration coefficients were successfully parsed.
+### 9. Observation
+Silicon ID read: 0x60 confirmed. Calibration registers returned non-zero factory coefficients.
+
+### 10. Inference
+Validated direct memory-mapped register access over I2C and confirmed sensor authenticity.

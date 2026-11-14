@@ -1,48 +1,62 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 8
+**EXP:** CAT 8 - TASK 8C
 
-**DATE:** 07/09/2026
+**DATE:** 
 
 **NAME OF EXP:** STM32 Multi-LED Sequence & Pattern Generator
 
-**HARDWARE SETUP / PLATFORM:** STM32F103C8T6 (Blue Pill) + Keil MDK-ARM (HAL)
+**HARDWARE SETUP / PLATFORM:** STM32 Blue Pill Board (STM32F103C8T6 @ 72 MHz) + Keil MDK-ARM (HAL)
 
 ---
 
-## TASK8C : 4-Channel Ring Counter & Chaser Display on PA0-PA3
+## TASK 8C : STM32 Multi-LED Sequence & Pattern Generator
 
-### 1. Circuit Diagram
+### 1. Aim
+To interface four external LEDs to Port A (PA0 - PA3) of the STM32F103 and implement a high-speed ping-pong chasing light pattern with 150ms step transitions.
 
-Four external LEDs connected to Port A lower nibble (PA0-PA3) execute a cyclic chasing light pattern with forward and reverse directional shifts.
+### 2. Components Required
+- 1x STM32F103C8T6 Blue Pill Board
+- 4x 5mm Colored User LEDs (Red, Yellow, Green, Blue)
+- 4x 330 Ohm Current-Limiting Resistors
+- ST-LINK V2 Debugger
+- Solderless Breadboard & Jumpers
 
-- **Target Microcontroller:** STM32F103C8T6
-- **Oscillator / Clock Tree:** 72 MHz PLL
-- **Configured Pin Allocations:** PA0, PA1, PA2, PA3 configured as GPIO Outputs (Push-Pull, High speed)
-- **External Hardware Peripherals:** 4x User LEDs (Red, Yellow, Green, Blue) with 330 Ohm resistors on breadboard
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the complete hardware interfacing, pin assignments, power decoupling rails, and external peripheral connections.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function | Direction / Logic |
+|---|---|---|---|
+| PA0 (Pin 10) | 330 Ω Resistor -> Red LED Anode | Chaser Channel 1 | Active-HIGH Output |
+| PA1 (Pin 11) | 330 Ω Resistor -> Yellow LED Anode | Chaser Channel 2 | Active-HIGH Output |
+| PA2 (Pin 12) | 330 Ω Resistor -> Green LED Anode | Chaser Channel 3 | Active-HIGH Output |
+| PA3 (Pin 13) | 330 Ω Resistor -> Blue LED Anode | Chaser Channel 4 | Active-HIGH Output |
+| LED Cathodes | Common System Ground (GND) | Current Return Path | 0V Reference |
 
-Bitmask manipulation over GPIO port pin constants. HAL_GPIO_WritePin sets individual pins HIGH sequentially with 150 ms delays to create continuous scanning visual motion.
+### 5. Working Principle
+Pins PA0 to PA3 are configured as push-pull outputs in high-speed mode. An array stores the pin bitmasks: `uint16_t leds[4] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3}`. The firmware drives each pin HIGH sequentially for 150ms before resetting it, scanning forward from PA0 to PA3, and then reverses back from PA2 to PA1 to produce a continuous fluid ping-pong scanner.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Configure PA0 - PA3 as `GPIO_MODE_OUTPUT_PP`, `GPIO_NOPULL`, `GPIO_SPEED_FREQ_HIGH`.
+2. Define LED pin array: `leds[4] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3};`.
+3. Inside loop:
+   a. Forward Sweep: For `i = 0` to `3`:
+      - Set pin HIGH: `HAL_GPIO_WritePin(GPIOA, leds[i], GPIO_PIN_SET);`.
+      - Delay 150ms: `HAL_Delay(150);`.
+      - Set pin LOW: `HAL_GPIO_WritePin(GPIOA, leds[i], GPIO_PIN_RESET);`.
+   b. Reverse Sweep: For `i = 2` down to `1`:
+      - Set pin HIGH, delay 150ms, set pin LOW.
+4. Repeat indefinitely.
 
-1. Configure PA0 - PA3 as GPIO_MODE_OUTPUT_PP.
-2. Store pins in array: uint16_t leds[4] = {GPIO_PIN_0, GPIO_PIN_1, GPIO_PIN_2, GPIO_PIN_3};
-3. Loop through 0 to 3, turn pin ON, HAL_Delay(150), turn OFF.
-4. Loop through 2 down to 1 for reverse ping-pong bounce effect.
+### 7. Core Logic / Code Base
+Atomic bit manipulation using STM32 GPIO Bit Set/Reset Register (BSRR) via HAL wrapper functions.
 
-**Code Structure / Key Registers:**
-
-Array-driven pin sequencing using HAL_GPIO_WritePin.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`Core/Src/main.c`):
 ```c
 #include "main.h"
 
@@ -71,6 +85,11 @@ int main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+The 4 LEDs illuminate in a continuous chasing motion (1 -> 2 -> 3 -> 4 -> 3 -> 2 -> 1) with uniform brightness.
 
-All 4 LEDs chased smoothly in ping-pong succession without cross-channel flicker.
+### 9. Observation
+Step duration verified: 150.0 ms per channel. Total loop cycle period: 900.0 ms.
+
+### 10. Inference
+Demonstrated multi-channel parallel GPIO output control and array-driven state sequencing on ARM Cortex-M3.

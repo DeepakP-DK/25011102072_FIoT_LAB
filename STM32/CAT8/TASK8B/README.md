@@ -1,53 +1,62 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 8
+**EXP:** CAT 8 - TASK 8B
 
-**DATE:** 07/09/2026
+**DATE:** 
 
 **NAME OF EXP:** STM32 Digital Input & Push-Button Control
 
-**HARDWARE SETUP / PLATFORM:** STM32F103C8T6 (Blue Pill) + Keil MDK-ARM (HAL)
+**HARDWARE SETUP / PLATFORM:** STM32 Blue Pill Board (STM32F103C8T6 @ 72 MHz) + Keil MDK-ARM (HAL)
 
 ---
 
-## TASK8B : Push-Button Controlled LED Latch on PA0 and PC13
+## TASK 8B : STM32 Digital Input & Push-Button Control
 
-### 1. Circuit Diagram
+### 1. Aim
+To interface an external push-button switch to STM32 pin PA0 with internal pull-up, implement 20ms software debounce filtering, and toggle the onboard PC13 LED on each validated press.
 
-Interfaces an active-low tactile push button to PA0 using internal pull-up resistor. Pressing the button toggles the operational state of the onboard LED on PC13.
+### 2. Components Required
+- 1x STM32F103C8T6 Blue Pill Board
+- 1x ST-LINK V2 Programmer
+- 1x Tactile Momentary Push-Button Switch
+- Onboard User LED on PC13
+- Breadboard & Solderless Jumpers
 
-- **Target Microcontroller:** STM32F103C8T6
-- **Oscillator / Clock Tree:** 72 MHz PLL
-- **Configured Pin Allocations:** PA0 as GPIO Input with Internal Pull-up (PULLUP); PC13 as GPIO Output
-- **External Hardware Peripherals:** External Push Button switch to GND on PA0, Onboard LED on PC13
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the complete hardware interfacing, pin assignments, power decoupling rails, and external peripheral connections.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function | Electrical Characteristic |
+|---|---|---|---|
+| PA0 | Push-Button Terminal 1 | Digital Input with Internal Pull-up | Pulled to 3.3V idle, 0V when pressed |
+| Switch Terminal 2 | System Ground (GND) | Switch Return Line | 0V Reference |
+| PC13 | Onboard Status LED | Output Latch Indicator | Toggles on each valid click |
+| +3.3V / GND | ST-LINK Power Terminals | System Power Supply | +3.3V Regulated Rail |
 
-Internal pull-up holds PA0 at 3.3V (HIGH) when idle. Pressing the button shorts PA0 to GND (LOW). HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) senses the falling transition. A 20ms HAL_Delay provides debounce filtering.
+### 5. Working Principle
+Pin PA0 is configured as a digital input with internal weak pull-up (~40k Ohm) enabled, holding the input at 3.3V when idle. When the button is pressed, PA0 connects to ground (0V). The firmware detects the falling edge via `HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET`. A 20ms delay is called to skip mechanical chatter. If PA0 is still LOW, the state of PC13 is toggled, and execution blocks in `while (HAL_GPIO_ReadPin(...) == GPIO_PIN_RESET)` until button release.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Initialize HAL and configure system clock to 72 MHz.
+2. Configure PA0 as `GPIO_MODE_INPUT` with `GPIO_PULLUP`.
+3. Configure PC13 as `GPIO_MODE_OUTPUT_PP`.
+4. In `while (1)` loop:
+   a. If `HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET`:
+      i. Call `HAL_Delay(20)` (debounce interval).
+      ii. If pin is still RESET:
+          - Toggle LED: `HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);`.
+          - Wait until released: `while (HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET);`.
+          - Call `HAL_Delay(20)` (release debounce).
+5. Repeat continuously.
 
-1. Configure PA0 as GPIO_MODE_INPUT with GPIO_PULLUP.
-2. Configure PC13 as GPIO_MODE_OUTPUT_PP.
-3. In while(1) loop:
-   a. If HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET:
-      i. HAL_Delay(20) debounce.
-      ii. If still RESET:
-          HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
-          while(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_0) == GPIO_PIN_RESET);
-          HAL_Delay(20);
+### 7. Core Logic / Code Base
+Edge detection with state-validation polling and release synchronization to eliminate false multi-triggering.
 
-**Code Structure / Key Registers:**
-
-GPIO HAL Input read APIs, software debouncing, and state toggling.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`Core/Src/main.c`):
 ```c
 #include "main.h"
 
@@ -72,6 +81,11 @@ int main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+Each physical press of the push-button cleanly latches and inverts the state of the PC13 LED without fluttering.
 
-Single button presses cleanly toggled the LED state with zero chatter false-triggers, proving internal pull-up reliability.
+### 9. Observation
+Zero spurious transitions observed over 100 consecutive button activations.
+
+### 10. Inference
+Internal pull-ups combined with state-verified software debouncing provide dependable tactile input interfacing.

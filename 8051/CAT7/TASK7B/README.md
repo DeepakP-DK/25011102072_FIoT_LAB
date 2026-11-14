@@ -1,50 +1,58 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 7
+**EXP:** CAT 7 - TASK 7B
 
-**DATE:** 31/08/2026
+**DATE:** 
 
 **NAME OF EXP:** Motor Actuation – Direction & Speed Control
 
-**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51) + Keil C51
+**HARDWARE SETUP / PLATFORM:** 8051 Microcontroller (AT89C51 @ 11.0592 MHz) + Keil C51
 
 ---
 
-## TASK7B : Bidirectional Stepper Motor Speed Control with Half-Stepping
+## TASK 7B : Motor Actuation – Direction & Speed Control
 
-### 1. Circuit Diagram
+### 1. Aim
+To implement an 8-step half-stepping commutation algorithm for a unipolar stepper motor on 8051 Port 2, incorporating interactive SPST switch controls for bidirectional rotation (CW/CCW) and dynamic speed selection.
 
-Implements an 8-step half-stepping sequence (0x08, 0x0C, 0x04, 0x06, 0x02, 0x03, 0x01, 0x09) to double angular resolution to 4096 steps per revolution. P3.2 toggles CW/CCW direction, while P3.3 selects between high and low speed.
+### 2. Components Required
+- 1x AT89C51 Microcontroller IC
+- 1x 28BYJ-48 Stepper Motor + ULN2003 Driver Board
+- 2x SPST Toggle Switches (Direction and Speed)
+- 2x 10k Ohm Pull-Up Resistors
+- External 5V 1A DC Power Supply
 
-- **Target Microcontroller:** AT89C51
-- **Oscillator / Clock Tree:** 11.0592 MHz Crystal
-- **Configured Pin Allocations:** P2.0 - P2.3 (ULN2003 IN1-IN4); P3.2 (Direction Switch), P3.3 (Speed Switch)
-- **External Hardware Peripherals:** 28BYJ-48 Stepper Motor, ULN2003 Driver Board, Tactile Switches, 5V DC Supply
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the exact hardware configuration, power rails, oscillator circuitry, and peripheral signal lines.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function |
+|---|---|---|
+| P2.0 - P2.3 | ULN2003 Inputs IN1 - IN4 | 4-Phase Stepper Commutation Outputs |
+| P3.2 (Pin 12) | Direction Switch & 10k Pull-up | Rotation Direction (1=CW, 0=CCW) |
+| P3.3 (Pin 13) | Speed Switch & 10k Pull-up | Commutation Speed (1=Fast 5ms, 0=Slow 15ms) |
+| Motor Red Lead | +5.0V External Power Supply | Coil Center-Tap VCC |
+| Common Ground | MCU Pin 20 & ULN2003 GND | Common 0V Reference |
 
-Half-stepping interleaves single-phase and two-phase excitation. This doubles the effective step count and halves the step angle, dramatically dampening mechanical resonance. Reversing the traversal order of the lookup table reverses rotation direction.
+### 5. Working Principle
+Half-stepping interleaves single-phase and two-phase excitation, doubling the angular resolution to 4096 steps per revolution (for a 64:1 geared 28BYJ-48). The 8-element sequence is: {0x08, 0x0C, 0x04, 0x06, 0x02, 0x03, 0x01, 0x09}. Moving forward through the array produces CW rotation; moving backward produces CCW rotation. The delay between steps dictates commutation speed (5ms = Fast, 15ms = Slow).
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Define 8-element half-step array: `half_step[8] = {0x08, 0x0C, 0x04, 0x06, 0x02, 0x03, 0x01, 0x09};`.
+2. Read Speed Switch P3.3: if HIGH -> set `step_delay = 5ms`, else `step_delay = 15ms`.
+3. Read Direction Switch P3.2:
+   a. If P3.2 == 1 (CW): iterate `step` index from 0 to 7, write `P2 = half_step[step]`, delay `step_delay`.
+   b. If P3.2 == 0 (CCW): iterate `step` index from 7 down to 0, write `P2 = half_step[step]`, delay `step_delay`.
+4. Repeat continuously.
 
-1. Define 8-element half-step array.
-2. Read Direction Switch P3.2 (CW if 1, CCW if 0).
-3. Read Speed Switch P3.3 (Fast 5ms if 1, Slow 15ms if 0).
-4. If CW: iterate index from 0 to 7 and output to P2.
-5. If CCW: iterate index from 7 down to 0 and output to P2.
-6. Repeat indefinitely.
+### 7. Core Logic / Code Base
+Bidirectional array indexing logic with runtime conditional speed assignment.
 
-**Code Structure / Key Registers:**
-
-8-step phase sequence table, bidirectional indexing logic, dynamic speed delay.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`main.c`):
 ```c
 #include <reg51.h>
 
@@ -87,6 +95,11 @@ void main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+The stepper motor executes silky-smooth half-stepping rotation, reversing direction instantly when P3.2 is toggled and tripling speed when P3.3 is asserted.
 
-Half-stepping produced significantly quieter and smoother motor rotation. Direction and speed switches responded immediately without causing motor stalling.
+### 9. Observation
+Half-stepping significantly reduced mechanical resonance and audible vibration compared to full-stepping.
+
+### 10. Inference
+Half-stepping doubles angular positioning precision while providing dynamic speed and direction controllability.

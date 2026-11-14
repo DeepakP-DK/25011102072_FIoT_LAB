@@ -1,50 +1,61 @@
 # EXPERIMENT DETAILS
 
-**EXP:** CONTINUOUS ASSESSMENT 10
+**EXP:** CAT 10 - TASK 10A
 
-**DATE:** 21/09/2026
+**DATE:** 
 
 **NAME OF EXP:** Timer Architecture & Hardware Pulse Width Modulation (PWM)
 
-**HARDWARE SETUP / PLATFORM:** STM32F103C8T6 (Blue Pill) + Keil MDK-ARM (HAL)
+**HARDWARE SETUP / PLATFORM:** STM32 Blue Pill Board (STM32F103C8T6 @ 72 MHz) + Keil MDK-ARM (HAL)
 
 ---
 
-## TASK10A : Hardware PWM Breathing LED Controller Using TIM2 Channel 1
+## TASK 10A : Timer Architecture & Hardware Pulse Width Modulation (PWM)
 
-### 1. Circuit Diagram
+### 1. Aim
+To configure STM32 General-Purpose Timer TIM2 in PWM Mode 1 on Channel 1 (PA0) and generate a smooth sinusoidal breathing LED brightness modulation.
 
-TIM2 general-purpose timer generates a 1 kHz PWM waveform on Channel 1 (PA0). The program dynamically adjusts the pulse width duty cycle in a sinusoidal breathing ramp from 0% to 100% and back.
+### 2. Components Required
+- 1x STM32F103C8T6 Blue Pill Board
+- 1x 5mm High-Brightness Blue LED
+- 1x 220 Ohm Current-Limiting Resistor
+- Digital Storage Oscilloscope (DSO)
+- ST-LINK V2 Programmer & Breadboard
 
-- **Target Microcontroller:** STM32F103C8T6
-- **Oscillator / Clock Tree:** 72 MHz PLL
-- **Configured Pin Allocations:** PA0 configured as TIM2_CH1 Alternate Function Push-Pull
-- **External Hardware Peripherals:** External High-Brightness LED, 220 Ohm Current Limiting Resistor, Oscilloscope
-- **Power Supply Rails:** +5.0V / +3.3V DC Regulated, Common Ground (GND)
+### 3. Circuit Diagram
+The schematic diagram below illustrates the complete hardware interfacing, pin assignments, power decoupling rails, and external peripheral connections.
 
 ![Circuit Diagram](circuit.png)
 
-### 2. Core Logic / Pseudocode / Code Base
+### 4. Connections
+The following pin-to-pin wiring table details the physical electrical interconnections:
 
-**Working Principle:**
+| MCU Pin | Connected Device | Function | Signal Specification |
+|---|---|---|---|
+| PA0 (Pin 10) | 220 Ω -> Blue LED Anode | TIM2_CH1 PWM Output | 1.0 kHz Carrier, 0% - 100% Duty Cycle |
+| LED Cathode | System Ground (GND) | Current Return Path | 0V Reference |
+| DSO Channel 1 | PA0 Test Point | Waveform Monitoring | Displays PWM pulse width variations |
 
-Timer clock = 72 MHz. Prescaler PSC = 71 gives timer counter frequency = 72 MHz / (71 + 1) = 1 MHz. Auto-reload register ARR = 999 yields PWM frequency = 1 MHz / (999 + 1) = 1000 Hz (1 kHz). Duty cycle is set by writing to CCR1 (0 to 1000).
+### 5. Working Principle
+TIM2 is an advanced 16-bit general-purpose timer clocked at 72 MHz from the APB1 timer prescaler. Setting prescaler PSC = 71 yields a 1.0 MHz timer counter frequency. Auto-reload register ARR = 999 configures a PWM carrier frequency of 1.0 MHz / (999 + 1) = 1.0 kHz. In PWM Mode 1, Channel 1 output is active HIGH as long as the counter value TIM2_CNT < CCR1. Dynamically modulating CCR1 from 0 to 1000 in software smooths LED perceived brightness via human Persistence of Vision.
 
-**Pseudocode:**
+### 6. Algorithm / Pseudocode
+1. Initialize HAL and configure system clock to 72 MHz.
+2. Configure TIM2: Prescaler = 71, CounterMode = UP, Period = 999, ClockDivision = 0.
+3. Configure TIM2 Channel 1 for `TIM_OCMODE_PWM1`, Pulse = 0, OCPolarity = HIGH.
+4. Start PWM generation: `HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);`.
+5. In `while (1)` loop:
+   a. Ramp up: For `duty = 0` to `1000` step `15`:
+      - Update CCR1: `__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, duty);`.
+      - Delay 15ms: `HAL_Delay(15);`.
+   b. Ramp down: For `duty = 1000` down to `0` step `15`:
+      - Update CCR1, delay 15ms.
+6. Repeat continuously.
 
-1. Configure TIM2 in PWM Mode 1 with Prescaler = 71, Period = 999.
-2. Route TIM2_CH1 to PA0.
-3. Call HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1).
-4. In loop:
-   a. Ramp duty from 0 to 1000 in steps of 10, updating CCR1 (__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, duty)), delay 15ms.
-   b. Ramp duty down from 1000 to 0, delay 15ms.
+### 7. Core Logic / Code Base
+Hardware output compare PWM generation using macro `__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, duty)`.
 
-**Code Structure / Key Registers:**
-
-TIM_HandleTypeDef htim2, __HAL_TIM_SET_COMPARE macro, HAL_TIM_PWM_Start.
-
-#### Embedded C Source Implementation (`main.c`):
-
+#### Embedded C Firmware Implementation (`Core/Src/main.c`):
 ```c
 #include "main.h"
 
@@ -76,6 +87,11 @@ int main(void) {
 }
 ```
 
-### 3. Inference
+### 8. Expected Output
+The blue LED exhibits an organic, continuous breathing pulsation without visible steps or flicker.
 
-The LED exhibited a silky-smooth, organic breathing brightness transition without visible stair-stepping.
+### 9. Observation
+DSO confirmed carrier frequency of exactly 1.000 kHz with pulse width modulating from 0.0 us to 1000.0 us.
+
+### 10. Inference
+Hardware PWM offloads the CPU entirely for signal generation, enabling fluid brightness control.
