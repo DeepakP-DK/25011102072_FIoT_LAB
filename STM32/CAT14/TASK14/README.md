@@ -56,7 +56,7 @@ The Node-RED pipeline acts as the telemetry aggregation and visualization layer.
 5. Route `msg.payload.pressure` to Atmospheric Pressure Numeric Tile widget.
 6. Launch Node-RED Dashboard 2.0 web interface at `http://localhost:1880/dashboard`.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Flow-based asynchronous event processing and WebSocket dynamic UI binding.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

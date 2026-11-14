@@ -55,7 +55,7 @@ The firmware maintains a security state machine. As the user enters keystrokes, 
       - Pulse buzzer and Red LED 3 times.
    e. Clear input buffer and repeat.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Array traversal comparison algorithm coupled with timed relay de-energization logic.
 
 #### Embedded C Firmware Implementation (`main.c`):

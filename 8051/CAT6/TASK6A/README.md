@@ -52,7 +52,7 @@ A 4x4 matrix keypad arranges 16 tactile switches across 4 row conductors and 4 c
    b. Return `0xFF` if no key is pressed.
 3. In `main()`: Continuously scan keypad. When a valid key (0-15) is detected, output `seg_code[key]` to Port 2.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Matrix scanning reduces pin requirements from 16 dedicated lines down to 8 shared lines. Debounce filtering and key-release blocking prevent multiple character registrations per keystroke.
 
 #### Embedded C Firmware Implementation (`main.c`):

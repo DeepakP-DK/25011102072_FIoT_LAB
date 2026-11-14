@@ -57,7 +57,7 @@ Mechanical switch contacts chatter on closure and opening for 5 to 15 millisecon
       v. Call `delay_ms(20)` to filter release contact bounce.
 5. Continue polling.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 The bitwise masking `count = (count + 1) & 0x0F` restricts the counter to a 4-bit range (0 to 15). The Port 1 output uses bitwise inversion `~count` to correctly drive active-LOW LEDs.
 
 #### Embedded C Firmware Implementation (`main.c`):

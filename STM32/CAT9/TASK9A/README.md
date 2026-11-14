@@ -49,7 +49,7 @@ The STM32F401RET6 features an ARM Cortex-M4F core with a single-precision hardwa
    b. Delay 250ms: `HAL_Delay(250);`.
 6. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 STM32F4xx clock distribution and Flash latency configuration (2 wait states at 84 MHz, 3.3V).
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

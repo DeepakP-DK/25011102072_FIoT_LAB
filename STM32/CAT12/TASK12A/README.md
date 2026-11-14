@@ -48,7 +48,7 @@ The Inter-Integrated Circuit (I2C) protocol uses two bidirectional open-drain li
       - Log address: Device discovered at 7-bit address 0xXX.
 4. Verify that Bosch BME280 acknowledges at address 0x76.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Master mode I2C protocol state machine with ACK/NACK detection via HAL abstraction.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

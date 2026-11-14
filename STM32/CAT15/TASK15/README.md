@@ -73,7 +73,7 @@ Rapidly dropping atmospheric pressure (< 1000 hPa) combined with sustained high 
    ```
 5. Update Node-RED Dashboard 2.0 UI components dynamically.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Multi-peripheral embedded sensor integration on ARM Cortex-M4 paired with a rule-based expert decision engine in Node-RED.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

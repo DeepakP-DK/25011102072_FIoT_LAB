@@ -54,7 +54,7 @@ The HD44780 controller manages display memory (DDRAM, CGROM, CGRAM). When RS=0, 
    c. Set DDRAM to Line 2: `lcd_cmd(0xC0);` -> write `"REG: 25011102072"`.
    d. Halt in `while (1);`.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Driver functions provide modular byte serialization. The Enable pulse timing conforms strictly to the HD44780 bus timing specification.
 
 #### Embedded C Firmware Implementation (`main.c`):

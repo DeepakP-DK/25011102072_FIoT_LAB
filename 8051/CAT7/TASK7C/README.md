@@ -50,7 +50,7 @@ The average voltage delivered to a DC motor is directly proportional to the PWM 
    b. For 80% Duty Cycle: Assert `EN1 = 1`, delay 80 loops, de-assert `EN1 = 0`, delay 20 loops.
 3. Cycle between duty modes in the main loop to demonstrate speed ramps.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Software PWM pulse generation with bidirectional H-bridge protection.
 
 #### Embedded C Firmware Implementation (`main.c`):

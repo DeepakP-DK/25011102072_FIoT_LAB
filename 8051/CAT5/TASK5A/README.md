@@ -54,7 +54,7 @@ The 8051 interrupt system provides hardware-vectored preemptive execution. Setti
    b. Call `delay_ms(300)`.
 6. System responds to INT0 asynchronously at any time during delay loops.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Registers configured: TCON.0 (IT0 = 1 for edge-trigger), IE.0 (EX0 = 1 to unmask INT0), IE.7 (EA = 1 for global interrupt enable). Keil `interrupt 0` keyword routes function to vector 0x0003.
 
 #### Embedded C Firmware Implementation (`main.c`):

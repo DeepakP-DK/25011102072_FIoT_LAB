@@ -54,7 +54,7 @@ The STM32 functions as the edge master processor while the ESP8266 acts as a Wi-
    d. Transmit packet via `AT+CIPSEND`.
    e. Delay 2000ms.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 AT command state machine combined with embedded MQTT 3.1.1 protocol packet serialization.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

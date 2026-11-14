@@ -48,7 +48,7 @@ The STM32 USART peripheral incorporates a hardware baud rate generator, transmit
    c. Delay 1000ms: `HAL_Delay(1000);`.
 5. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Baud rate register calculation: USARTDIV = 42 MHz / (16 * 115200) = 22.786 -> BRR = 0x16D. Polling transmission via HAL driver.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

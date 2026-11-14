@@ -53,7 +53,7 @@ Pins PA0 to PA3 are configured as push-pull outputs in high-speed mode. An array
       - Set pin HIGH, delay 150ms, set pin LOW.
 4. Repeat indefinitely.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Atomic bit manipulation using STM32 GPIO Bit Set/Reset Register (BSRR) via HAL wrapper functions.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

@@ -50,7 +50,7 @@ Multi-channel timers allow synchronous phase-aligned PWM output across multiple 
    b. Left Turn: CCR3 = 400, CCR4 = 800 (delay 2s).
    c. Right Turn: CCR3 = 800, CCR4 = 400 (delay 2s).
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Synchronized multi-channel compare register updates for robotic drive kinematics.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

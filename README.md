@@ -45,9 +45,15 @@ Every experiment is fully documented with aim, component bill-of-materials, high
 
 | Assessment | Task ID | Experiment Title & Technical Objective | Target MCU / Clock | Documentation Link |
 |:---:|:---:|:---|:---:|:---:|
+| **CAT 2** | `TASK2A` | 8051 Minimum-System Bring-Up and Port-1 LED Proof Test | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT2/TASK2A/README.md) |
 | **CAT 2** | `TASK2B` | Dual-Pattern LED Blinker with Re-entrant Delay Loops | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT2/TASK2B/README.md) |
+| **CAT 2** | `TASK2C` | Calibrated Software Delay and GPIO Timing Test | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT2/TASK2C/README.md) |
 | **CAT 3** | `TASK3A` | Debounced Push-Button Counter with LED Status Indication | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT3/TASK3A/README.md) |
+| **CAT 3** | `TASK3B` | Four-Bit Binary LED Counter | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT3/TASK3B/README.md) |
+| **CAT 3** | `TASK3C` | Alternating Four-LED Pattern Generator | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT3/TASK3C/README.md) |
+| **CAT 3** | `TASK3D` | Synchronous Four-LED Flash Controller | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT3/TASK3D/README.md) |
 | **CAT 4** | `TASK4A` | 1 kHz Symmetrical Square Wave via Timer 0 Mode 1 (16-bit) | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT4/TASK4A/README.md) |
+| **CAT 4** | `TASK4B` | 4x4 Matrix Keypad Controlled LED Selector | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT4/TASK4B/README.md) |
 | **CAT 5** | `TASK5A` | Hardware Interrupt-Driven Emergency Stop via INT0 Vector | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT5/TASK5A/README.md) |
 | **CAT 5** | `TASK5B.1` | Static Single-Digit 0-9 Decimal Counter on Common Anode 7-Seg | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT5/TASK5B/TASK5B.1/README.md) |
 | **CAT 5** | `TASK5B.2` | Dual-Digit Multiplexed 00-99 Display with Persistence of Vision | AT89C51 @ 11.0592 MHz | [README.md](8051/CAT5/TASK5B/TASK5B.2/README.md) |

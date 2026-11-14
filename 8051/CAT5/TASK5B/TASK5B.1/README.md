@@ -53,7 +53,7 @@ In Common Anode 7-segment displays, all internal LED anodes share a common termi
       ii. Delay 1000ms: `delay_ms(1000);`.
    b. Wrap digit back to 0 and repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Port 2 is mapped at SFR address 0xA0. Common anode codes are computed by setting active segment bits to 0 and inactive segments to 1 (e.g. Numeral '0' activates segments a,b,c,d,e,f -> bits 0..5 = 0, bit 6 = 1, bit 7 = 1 -> 11000000b = 0xC0).
 
 #### Embedded C Firmware Implementation (`main.c`):

@@ -52,7 +52,7 @@ TIM2 is an advanced 16-bit general-purpose timer clocked at 72 MHz from the APB1
       - Update CCR1, delay 15ms.
 6. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Hardware output compare PWM generation using macro `__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, duty)`.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

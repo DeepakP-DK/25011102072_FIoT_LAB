@@ -56,7 +56,7 @@ Multiplexing reduces pin count from 16 down to 9 pins by sharing segment data li
       vi. Blank display: `DIGIT1_EN = 0; DIGIT2_EN = 0;`.
 4. Main loop increments `count = (count + 1) % 100` and refreshes.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Transistor switches Q1 and Q2 operate in saturation mode to sink combined segment current. The display blanking prevents cross-talk ghosting caused by capacitive trace discharge during digit switching.
 
 #### Embedded C Firmware Implementation (`main.c`):

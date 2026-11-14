@@ -47,7 +47,7 @@ The Bosch BME280 contains a dedicated Chip Identification register at memory add
 6. Read humidity calibration bytes from address 0xA1 and 0xE1 to 0xE7.
 7. Parse and print parameters to serial console.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Direct register-level memory reading using `HAL_I2C_Mem_Read()` with 8-bit memory address pointer addressing.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

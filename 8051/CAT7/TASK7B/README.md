@@ -49,7 +49,7 @@ Half-stepping interleaves single-phase and two-phase excitation, doubling the an
    b. If P3.2 == 0 (CCW): iterate `step` index from 7 down to 0, write `P2 = half_step[step]`, delay `step_delay`.
 4. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Bidirectional array indexing logic with runtime conditional speed assignment.
 
 #### Embedded C Firmware Implementation (`main.c`):

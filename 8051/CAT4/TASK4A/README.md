@@ -54,7 +54,7 @@ At an oscillator frequency of 11.0592 MHz, 1 machine cycle is 12 / 11.0592 MHz =
    f. Toggle the output pin: `WAVE_OUT = ~WAVE_OUT;`.
 4. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Special Function Registers involved: TMOD (0x89) configured as 0x01, TCON (0x88) controlling TR0 and TF0 flags, and TH0/TL0 (0x8C/0x8A) reload registers.
 
 #### Embedded C Firmware Implementation (`main.c`):

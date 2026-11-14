@@ -50,7 +50,7 @@ Raw 20-bit ADC pressure and temperature values from the BME280 cannot be used di
    c. Output formatted metrics over UART.
    d. Delay 1000ms.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Vendor driver abstraction layer integration with physical compensation mathematical routines.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

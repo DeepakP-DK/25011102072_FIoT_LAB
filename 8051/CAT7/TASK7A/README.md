@@ -51,7 +51,7 @@ Microcontroller pins cannot supply the hundreds of milliamps demanded by stepper
       ii. Introduce inter-step dwell time: `delay_ms(15);`.
    b. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Phase switching sequence stored in ROM. Inter-step delay of 15ms establishes a stable commutation speed without rotor stall or slip.
 
 #### Embedded C Firmware Implementation (`main.c`):

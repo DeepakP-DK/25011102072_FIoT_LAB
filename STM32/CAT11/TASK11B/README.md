@@ -51,7 +51,7 @@ Polling UART for user keystrokes stalls the CPU and risks byte drops. Instead, t
       - If `strcmp(rx_buf, "OFF") == 0`: Turn OFF LD2.
       - Reset `cmd_ready = 0` and `rx_idx = 0`.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Interrupt-driven circular buffering with asynchronous command token dispatching.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

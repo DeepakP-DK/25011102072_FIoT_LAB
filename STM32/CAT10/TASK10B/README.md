@@ -49,7 +49,7 @@ Standard RC analog servos require a 50 Hz PWM control signal (20ms period). The 
    c. Position 180°: `__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_2, 2000); HAL_Delay(1000);`.
 5. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Timer PWM pulse mapping conforming to standard RC servo pulse specifications.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

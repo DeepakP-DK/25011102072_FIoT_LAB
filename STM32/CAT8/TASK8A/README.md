@@ -51,7 +51,7 @@ The STM32F103C8T6 contains a 32-bit ARM Cortex-M3 core operating at up to 72 MHz
    b. Delay 500ms: `HAL_Delay(500);`.
 6. Repeat indefinitely.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Standard STM32 HAL GPIO APIs: `HAL_GPIO_TogglePin()` and `HAL_Delay()` driven by the 1ms SysTick interrupt handler.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

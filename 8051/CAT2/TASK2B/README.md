@@ -55,7 +55,7 @@ The AT89C51 features four 8-bit bidirectional parallel ports. Port 1 pins are in
    d. Call `delay_ms(500)` to complete the 1-second operational period.
 5. Repeat indefinitely.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 The program leverages direct special function register access to `P1` (mapped at address 0x90). The software delay function uses calibrated constants tailored to the 12-clock CISC architecture. The loop overhead is computed as: Outer Loop * Inner Loop * 2 Machine Cycles * 1.0851 us ≈ 1.0 ms.
 
 #### Embedded C Firmware Implementation (`main.c`):

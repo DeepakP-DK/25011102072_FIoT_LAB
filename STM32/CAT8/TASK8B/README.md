@@ -53,7 +53,7 @@ Pin PA0 is configured as a digital input with internal weak pull-up (~40k Ohm) e
           - Call `HAL_Delay(20)` (release debounce).
 5. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Edge detection with state-validation polling and release synchronization to eliminate false multi-triggering.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

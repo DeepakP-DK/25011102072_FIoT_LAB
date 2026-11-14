@@ -47,7 +47,7 @@ The STM32 SYSCFG peripheral maps port pins to EXTI lines. PC13 routes to EXTI13.
    a. If `GPIO_Pin == GPIO_PIN_13`, call `HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5)`.
 6. In `while (1)` main loop: Call `__WFI();` to sleep until next button press.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Hardware NVIC vectoring, EXTI edge detector configuration, and low-power sleep architecture.
 
 #### Embedded C Firmware Implementation (`Core/Src/main.c`):

@@ -53,7 +53,7 @@ Port 0 on the 8051 features open-drain output FETs without internal pull-ups, re
 4. Update count variable according to direction state and clamp between 0 and 9999.
 5. Repeat continuously.
 
-### 7. Core Logic / Code Base
+### 7. Core Logic / Pseudocode / Code Base
 Port 0 open-drain pull-up configuration combined with rotating bit-mask `~(1 << scan)` on Port 2 creates an efficient round-robin digit scanner.
 
 #### Embedded C Firmware Implementation (`main.c`):
